@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crystal Jelly - Interactive Ripple Surface</title>
+    <title>Crystal Jelly</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -27,8 +27,8 @@
             cursor: pointer;
         }
 
-        .glass-prompt {
-            background: rgba(255, 255, 255, 0.85);
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(226, 232, 240, 0.8);
@@ -36,8 +36,8 @@
         }
 
         @keyframes pulseGlow {
-            0%, 100% { opacity: 0.95; transform: scale(1); }
-            50% { opacity: 0.7; transform: scale(1.02); }
+            0%, 100% { opacity: 0.9; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.02); }
         }
 
         .pulse-prompt {
@@ -47,92 +47,175 @@
 </head>
 <body class="relative flex items-center justify-center bg-white">
 
-    <!-- WebGL Fullscreen Canvas -->
+    <!-- Fullscreen Interactive Canvas -->
     <canvas id="crystalCanvas"></canvas>
 
-    <!-- Settings Toggle Button -->
-    <button id="settingsBtn" class="fixed top-6 right-6 z-20 p-3 rounded-full glass-prompt hover:bg-white transition-transform active:scale-95 shadow-md flex items-center justify-center cursor-pointer border border-slate-200 text-slate-700" title="Color Settings">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+    <!-- Center Interaction Prompt -->
+    <div id="gesturePrompt" class="pointer-events-none absolute bottom-8 left-1/2 -translate-x-1/2 z-10 glass-panel px-6 py-3 rounded-full flex items-center gap-3 transition-opacity duration-500 pulse-prompt">
+        <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/>
+        </svg>
+        <span class="text-sm font-medium text-slate-700 tracking-wide">Click or tap anywhere to create crystal ripples</span>
+    </div>
+
+    <!-- Top-Right Settings Gear Button -->
+    <button id="settingsBtn" class="absolute top-6 right-6 z-20 glass-panel p-3 rounded-full hover:bg-slate-100/80 transition-all transform hover:scale-105 active:scale-95 shadow-md group" title="Color Settings">
+        <svg class="w-6 h-6 text-slate-700 group-hover:rotate-45 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
         </svg>
     </button>
 
-    <!-- Settings Modal Drawer -->
-    <div id="settingsPanel" class="fixed top-20 right-6 z-20 hidden w-72 glass-prompt p-5 rounded-2xl shadow-2xl border border-slate-200 transition-all duration-300">
-        <div class="flex items-center justify-between pb-3 border-b border-slate-200/80 mb-4">
-            <h3 class="font-bold text-sm text-slate-800 tracking-wider uppercase">Crystal Color</h3>
-            <button id="closeSettings" class="text-slate-400 hover:text-slate-600 p-1 text-lg leading-none">&times;</button>
+    <!-- Settings Drawer Panel -->
+    <div id="settingsPanel" class="hidden absolute top-20 right-6 z-20 glass-panel p-5 rounded-2xl w-80 flex flex-col gap-4 shadow-2xl transition-all">
+        <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+            <h3 class="font-semibold text-slate-800 text-base flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span> Crystal Color Settings
+            </h3>
+            <button id="closeSettings" class="text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-lg">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
         </div>
 
-        <!-- Color Preset Buttons -->
-        <div class="space-y-3">
-            <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Gemstone Presets</label>
-            <div class="grid grid-cols-6 gap-2">
-                <button class="color-preset-btn w-8 h-8 rounded-full border-2 border-slate-300 bg-white ring-2 ring-slate-400 shadow-sm transition-transform active:scale-90" data-color="#ffffff" title="Diamond White"></button>
-                <button class="color-preset-btn w-8 h-8 rounded-full border border-slate-200 bg-blue-500 shadow-sm transition-transform active:scale-90" data-color="#3b82f6" title="Sapphire Blue"></button>
-                <button class="color-preset-btn w-8 h-8 rounded-full border border-slate-200 bg-purple-500 shadow-sm transition-transform active:scale-90" data-color="#a855f7" title="Amethyst Purple"></button>
-                <button class="color-preset-btn w-8 h-8 rounded-full border border-slate-200 bg-emerald-500 shadow-sm transition-transform active:scale-90" data-color="#10b981" title="Emerald Green"></button>
-                <button class="color-preset-btn w-8 h-8 rounded-full border border-slate-200 bg-rose-500 shadow-sm transition-transform active:scale-90" data-color="#f43f5e" title="Ruby Red"></button>
-                <button class="color-preset-btn w-8 h-8 rounded-full border border-slate-200 bg-amber-400 shadow-sm transition-transform active:scale-90" data-color="#fbbf24" title="Rose Gold"></button>
-            </div>
-
-            <!-- Custom Picker -->
-            <div class="pt-3 border-t border-slate-200/80 flex items-center justify-between">
-                <span class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Custom Color</span>
-                <div class="flex items-center space-x-2">
-                    <input type="color" id="customColorPicker" value="#ffffff" class="w-8 h-8 rounded cursor-pointer border-0 bg-transparent">
-                </div>
+        <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Gemstone Presets</label>
+            <div class="grid grid-cols-3 gap-2">
+                <button class="color-preset-btn flex items-center justify-center gap-1.5 p-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-all ring-2 ring-slate-400" data-color="#ffffff">
+                    <span class="w-3.5 h-3.5 rounded-full border border-slate-300 bg-white"></span>
+                    <span class="text-xs font-medium text-slate-700">White</span>
+                </button>
+                <button class="color-preset-btn flex items-center justify-center gap-1.5 p-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-all" data-color="#3b82f6">
+                    <span class="w-3.5 h-3.5 rounded-full bg-blue-500"></span>
+                    <span class="text-xs font-medium text-slate-700">Sapphire</span>
+                </button>
+                <button class="color-preset-btn flex items-center justify-center gap-1.5 p-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-all" data-color="#8b5cf6">
+                    <span class="w-3.5 h-3.5 rounded-full bg-purple-500"></span>
+                    <span class="text-xs font-medium text-slate-700">Amethyst</span>
+                </button>
+                <button class="color-preset-btn flex items-center justify-center gap-1.5 p-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-all" data-color="#10b981">
+                    <span class="w-3.5 h-3.5 rounded-full bg-emerald-500"></span>
+                    <span class="text-xs font-medium text-slate-700">Emerald</span>
+                </button>
+                <button class="color-preset-btn flex items-center justify-center gap-1.5 p-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-all" data-color="#f43f5e">
+                    <span class="w-3.5 h-3.5 rounded-full bg-rose-500"></span>
+                    <span class="text-xs font-medium text-slate-700">Ruby</span>
+                </button>
+                <button class="color-preset-btn flex items-center justify-center gap-1.5 p-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-all" data-color="#f43f8e">
+                    <span class="w-3.5 h-3.5 rounded-full bg-pink-400"></span>
+                    <span class="text-xs font-medium text-slate-700">Rose</span>
+                </button>
             </div>
         </div>
-    </div>
 
-    <!-- Interactive Gesture Prompt Overlay -->
-    <div id="gesturePrompt" class="pointer-events-none fixed bottom-8 flex items-center justify-center transition-opacity duration-700 z-10">
-        <div class="glass-prompt px-6 py-3 rounded-full flex items-center space-x-3 pulse-prompt border border-slate-200">
-            <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path>
-            </svg>
-            <span class="text-xs sm:text-sm font-bold tracking-wider text-slate-800 uppercase">Click or tap to send thick crystal ripples</span>
+        <div class="pt-2 border-t border-slate-200 flex items-center justify-between">
+            <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Custom Tint Color</label>
+            <input type="color" id="customColorPicker" value="#ffffff" class="w-9 h-9 rounded-lg border border-slate-300 cursor-pointer p-0.5 bg-white">
         </div>
     </div>
 
     <script>
-        // Shared Quad Vertex Shader
+        // Vertex Shader
         const quadVertexShaderSource = `
             attribute vec2 a_position;
             varying vec2 v_uv;
             void main() {
-                v_uv = a_position * 0.5 + 0.5;
+                v_uv = (a_position + 1.0) * 0.5;
                 gl_Position = vec4(a_position, 0.0, 1.0);
             }
         `;
 
-        // Faceted Gemstone Crystal Render Shader with High-Visibility Thick Waves
+        // Fragment Shader
         const renderFragmentShaderSource = `
-            #ifdef GL_FRAGMENT_PRECISION_HIGH
             precision highp float;
-            #else
-            precision mediump float;
-            #endif
 
-            #define MAX_RIPPLES 12
-
-            uniform vec4 u_ripples[MAX_RIPPLES]; // x, y, radius, intensity
-            uniform int u_rippleCount;
-            uniform float u_time;
-            uniform vec2 u_resolution;
-            uniform vec3 u_crystalColor;
             varying vec2 v_uv;
 
-            // Pseudo-random hash for Voronoi faceted crystal cells
+            uniform vec2 u_resolution;
+            uniform float u_time;
+            uniform vec3 u_crystalColor;
+
+            #define MAX_RIPPLES 12
+            #define MAX_NODES 8
+
+            // xy: center, z: radius, w: intensity
+            uniform vec4 u_ripples[MAX_RIPPLES];
+            uniform int u_rippleCount;
+
+            // xy: center, z: size, w: intensity
+            uniform vec4 u_standingNodes[MAX_NODES];
+            uniform int u_standingNodeCount;
+
+            // Pseudo-random hash function for voronoi crystal facets
             vec2 hash22(vec2 p) {
-                vec3 p3 = fract(vec3(p.xyx) * vec3(.1031, .1030, .0973));
-                p3 += dot(p3, p3.yzx + 33.33);
-                return fract((p3.xx + p3.yz) * p3.zy);
+                p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
+                return fract(sin(p) * 43758.5453123);
             }
 
-            // Calculates dense continuous height, slope, caustics, and crystal facets without hollow gaps
+            // Calculates standing collision water crystal nodes
+            float getSingleStandingNode(
+                vec2 uv, vec2 center, float size, float intensity, float aspect, 
+                out vec2 waveSlope, out float caustic, out vec3 waveFacetNormal, 
+                out float waveFacetEdge, out float wavePresence
+            ) {
+                vec2 diff = uv - center;
+                diff.x *= aspect;
+                float dist = length(diff);
+
+                if (dist > size || intensity <= 0.0) {
+                    waveSlope = vec2(0.0);
+                    caustic = 0.0;
+                    waveFacetNormal = vec3(0.0, 0.0, 1.0);
+                    waveFacetEdge = 0.0;
+                    wavePresence = 0.0;
+                    return 0.0;
+                }
+
+                vec2 dir = dist > 0.0001 ? diff / dist : vec2(1.0, 0.0);
+                float angle = atan(dir.y, dir.x);
+
+                // Bobbing harmonic wave scaled by fading intensity
+                float bob = (sin(u_time * 3.2 + size * 10.0) * 0.5 + 0.5) * intensity;
+                float edgeFade = smoothstep(size, 0.0, dist) * intensity;
+
+                float waveProfile = cos(dist * 38.0 - u_time * 1.8) * bob;
+                float h = waveProfile * edgeFade * 0.18;
+
+                float dh_ddist = -sin(dist * 38.0 - u_time * 1.8) * 38.0 * bob * edgeFade;
+                vec2 perp = vec2(-dir.y, dir.x);
+                waveSlope = dir * dh_ddist * 0.022;
+
+                caustic = pow(max(0.0, waveProfile * 0.5 + 0.5), 1.5) * edgeFade * 1.2;
+                wavePresence = clamp((waveProfile * 0.4 + 0.6) * edgeFade * 1.8, 0.0, 1.0);
+
+                // Voronoi crystal facets for standing node
+                vec2 crystalST = vec2(angle * 4.0, dist * 20.0);
+                vec2 g = floor(crystalST);
+                vec2 f = fract(crystalST);
+
+                float md1 = 8.0, md2 = 8.0;
+                vec2 closestPoint = vec2(0.0);
+
+                for(int y = -1; y <= 1; y++) {
+                    for(int x = -1; x <= 1; x++) {
+                        vec2 lattice = vec2(float(x), float(y));
+                        vec2 offset = hash22(g + lattice);
+                        vec2 p = lattice + offset - f;
+                        float d = dot(p, p);
+                        if(d < md1) { md2 = md1; md1 = d; closestPoint = p; }
+                        else if(d < md2) { md2 = d; }
+                    }
+                }
+
+                waveFacetEdge = (md2 - md1) * wavePresence;
+                vec2 localFacetXY = -closestPoint * 0.6;
+                waveFacetNormal = normalize(vec3(dir * localFacetXY.y + perp * localFacetXY.x, 0.5));
+
+                return h;
+            }
+
+            // Calculates dense continuous ripple height, slope, caustics, and crystal facets
             float getSingleRippleWave(
                 vec2 uv, vec2 center, float radius, float intensity, float aspect, 
                 out vec2 waveSlope, out float caustic, out vec3 waveFacetNormal, 
@@ -154,15 +237,12 @@
                 vec2 dir = dist > 0.0001 ? diff / dist : vec2(1.0, 0.0);
                 float angle = atan(dir.y, dir.x);
 
-                // Multi-ring frequency to create tight, continuous concentric ripples
                 float freq = 36.0;
                 float phase = (radius - dist) * freq;
 
-                // Organic harmonic wobble across wave fronts
                 float wobble = sin(angle * 4.0 + radius * 8.0) * 0.35 + cos(angle * 6.0 - radius * 5.0) * 0.25;
                 phase += wobble;
 
-                // Smooth envelope covering the entire active expanding ripple disk
                 float leadingEdge = smoothstep(radius + 0.04, radius - 0.02, dist);
                 float centerFade = pow(clamp(dist / (radius + 0.001), 0.0, 1.0), 0.55);
                 float overallFade = pow(max(0.0, 1.0 - radius / 1.15), 0.8) * intensity;
@@ -178,11 +258,9 @@
                     return 0.0;
                 }
 
-                // Continuous concentric sinusoidal ripple profile
                 float waveProfile = sin(phase);
                 float h = waveProfile * envelope * 0.2;
 
-                // Slope vector calculation
                 float dh_ddist = cos(phase) * freq * envelope;
                 vec2 perp = vec2(-dir.y, dir.x);
                 waveSlope = dir * dh_ddist * 0.022;
@@ -190,13 +268,12 @@
                 caustic = pow(max(0.0, waveProfile * 0.5 + 0.5), 1.4) * envelope * 1.2;
                 wavePresence = clamp((waveProfile * 0.5 + 0.5) * envelope * 2.2, 0.0, 1.0);
 
-                // Compute dense geometric crystal facets across the full undulating ripple area
+                // Compute dense geometric crystal facets
                 vec2 crystalST = vec2(angle * 5.0, dist * 22.0 - radius * 6.0);
                 vec2 g = floor(crystalST);
                 vec2 f = fract(crystalST);
 
-                float md1 = 8.0;
-                float md2 = 8.0;
+                float md1 = 8.0, md2 = 8.0;
                 vec2 closestPoint = vec2(0.0);
 
                 for(int y = -1; y <= 1; y++) {
@@ -205,18 +282,12 @@
                         vec2 offset = hash22(g + lattice);
                         vec2 p = lattice + offset - f;
                         float d = dot(p, p);
-                        if(d < md1) {
-                            md2 = md1;
-                            md1 = d;
-                            closestPoint = p;
-                        } else if(d < md2) {
-                            md2 = d;
-                        }
+                        if(d < md1) { md2 = md1; md1 = d; closestPoint = p; }
+                        else if(d < md2) { md2 = d; }
                     }
                 }
 
                 waveFacetEdge = (md2 - md1) * wavePresence;
-                
                 vec2 localFacetXY = -closestPoint * 0.6;
                 waveFacetNormal = normalize(vec3(dir * localFacetXY.y + perp * localFacetXY.x, 0.5));
 
@@ -233,6 +304,7 @@
                 vec3 blendedFacetNormal = vec3(0.0);
                 float totalFacetEdge = 0.0;
 
+                // 1. Process expanding transient ripples
                 for (int i = 0; i < MAX_RIPPLES; i++) {
                     if (i >= u_rippleCount) break;
                     vec2 waveSlope;
@@ -254,13 +326,35 @@
                     totalFacetEdge += waveFacetEdge;
                 }
 
-                // Combine surface normal
+                // 2. Process standing water crystal nodes formed by collisions
+                for (int j = 0; j < MAX_NODES; j++) {
+                    if (j >= u_standingNodeCount) break;
+                    vec2 waveSlope;
+                    float caustic;
+                    vec3 waveFacetNormal;
+                    float waveFacetEdge;
+                    float wavePresence;
+
+                    float h = getSingleStandingNode(
+                        v_uv, u_standingNodes[j].xy, u_standingNodes[j].z, u_standingNodes[j].w,
+                        aspect, waveSlope, caustic, waveFacetNormal, waveFacetEdge, wavePresence
+                    );
+
+                    totalHeight += h;
+                    totalWaveSlope += waveSlope;
+                    totalCaustic += caustic;
+                    totalWavePresence += wavePresence;
+                    blendedFacetNormal += waveFacetNormal * wavePresence;
+                    totalFacetEdge += waveFacetEdge;
+                }
+
+                // Surface Normal calculation
                 vec3 N;
                 if (totalWavePresence > 0.001) {
                     vec3 avgFacet = normalize(blendedFacetNormal);
                     N = normalize(mix(vec3(0.0, 0.0, 1.0), avgFacet, clamp(totalWavePresence * 1.5, 0.0, 1.0)) + vec3(-totalWaveSlope * 24.0, 0.0));
                 } else {
-                    N = vec3(0.0, 0.0, 1.0); // Completely flat plain surface when no wave is active
+                    N = vec3(0.0, 0.0, 1.0); // Completely flat plain white surface when no wave is active
                 }
 
                 // Base plane background is pure white
@@ -272,20 +366,19 @@
                     float slopeLen = length(totalWaveSlope);
                     float slopeShadow = smoothstep(0.008, 1.8, slopeLen) * 0.42;
 
-                    // Frosted ambient occlusion halo around crystal geometry
                     float ambientOcclusion = max(softBlurShadow, slopeShadow);
                     vec3 shadowColor = mix(vec3(1.0), vec3(0.74, 0.77, 0.82), ambientOcclusion);
                     color = shadowColor;
 
-                    // Frosted facet edge outlines & soft bevel blur
+                    // Frosted facet edge outlines
                     float facetEdgeVisual = 1.0 - smoothstep(0.008, 0.16, totalFacetEdge);
                     color -= vec3(0.18) * facetEdgeVisual * clamp(totalWavePresence * 2.0, 0.0, 1.0);
 
-                    // Caustics tinted with crystal color (bright light intensity)
+                    // Caustics
                     vec3 causticTint = mix(vec3(0.92), u_crystalColor * 1.2, 0.65);
                     color += causticTint * totalCaustic * smoothstep(0.005, 1.0, slopeLen);
 
-                    // Pure White & Tinted Specular Reflections on Crystal Facets
+                    // Specular Reflections
                     vec3 lightDir1 = normalize(vec3(0.4, 0.8, 1.0));
                     vec3 lightDir2 = normalize(vec3(-0.5, -0.7, 0.9));
                     vec3 viewDir = vec3(0.0, 0.0, 1.0);
@@ -299,10 +392,10 @@
                     vec3 specColor = mix(vec3(1.0), clamp(u_crystalColor + vec3(0.35), 0.0, 1.0), 0.5);
                     color += specColor * (spec1 + spec2) * clamp(totalWavePresence * 2.2, 0.0, 1.0);
 
-                    // Subtle crystal body tint inside active wave crests
+                    // Crystal body color tint inside wave crests
                     color = mix(color, color * u_crystalColor, totalWavePresence * 0.22);
 
-                    // Bright White Fresnel Edge Rim with soft blur halo
+                    // Fresnel Rim
                     float fresnel = pow(1.0 - max(dot(N, viewDir), 0.0), 2.0);
                     color += vec3(1.0) * fresnel * 0.40 * clamp(totalWavePresence * 2.2, 0.0, 1.0);
                 }
@@ -318,9 +411,13 @@
         let userInteracted = false;
         let activeCrystalColor = [1.0, 1.0, 1.0]; // Default Pure White
 
-        // Active ripples list
         const activeRipples = [];
+        const activeStandingNodes = [];
+        const processedCollisions = new Set();
+        let rippleIdCounter = 0;
+
         const MAX_RIPPLES = 12;
+        const MAX_NODES = 8;
 
         function createShader(gl, type, source) {
             const shader = gl.createShader(type);
@@ -389,8 +486,8 @@
                 activeRipples.shift();
             }
 
-            // Spawn thick wave starting immediately with high initial slope for instant click feedback
             activeRipples.push({
+                id: ++rippleIdCounter,
                 x: xUv,
                 y: yUv,
                 radius: 0.001,
@@ -398,10 +495,6 @@
                 speed: 0.38 + Math.random() * 0.08,
                 intensity: isBold ? 1.4 : 1.0
             });
-        }
-
-        function triggerCenterRipple() {
-            triggerRipple(0.5, 0.5, true);
         }
 
         let lastTime = 0;
@@ -421,10 +514,55 @@
                 }
             }
 
+            // Update standing collision nodes intensity fade
+            for (let j = activeStandingNodes.length - 1; j >= 0; j--) {
+                const n = activeStandingNodes[j];
+                n.intensity -= dt * 0.45;
+                if (n.intensity <= 0) {
+                    activeStandingNodes.splice(j, 1);
+                }
+            }
+
+            // Collision Detection between ripples
+            const aspect = canvas.width / canvas.height;
+            for (let i = 0; i < activeRipples.length; i++) {
+                for (let j = i + 1; j < activeRipples.length; j++) {
+                    const r1 = activeRipples[i];
+                    const r2 = activeRipples[j];
+                    const pairKey = `${r1.id}_${r2.id}`;
+
+                    if (processedCollisions.has(pairKey)) continue;
+
+                    const dx = (r1.x - r2.x) * aspect;
+                    const dy = r1.y - r2.y;
+                    const dist = Math.hypot(dx, dy);
+
+                    if (dist <= (r1.radius + r2.radius) && dist >= Math.abs(r1.radius - r2.radius)) {
+                        processedCollisions.add(pairKey);
+
+                        const midX = (r1.x + r2.x) * 0.5;
+                        const midY = (r1.y + r2.y) * 0.5;
+
+                        const existingNode = activeStandingNodes.find(n => Math.hypot((n.x - midX) * aspect, n.y - midY) < 0.12);
+                        if (existingNode) {
+                            existingNode.size = Math.min(0.32, existingNode.size + 0.04);
+                            existingNode.intensity = 1.0;
+                        } else if (activeStandingNodes.length < MAX_NODES) {
+                            activeStandingNodes.push({
+                                x: midX,
+                                y: midY,
+                                size: 0.18 + Math.random() * 0.06,
+                                intensity: 1.0
+                            });
+                        }
+                    }
+                }
+            }
+
             gl.viewport(0, 0, canvas.width, canvas.height);
             gl.useProgram(renderProgram);
 
-            // Pass active ripples to uniforms
+            // Pass active transient ripples to uniforms
             const rippleData = new Float32Array(MAX_RIPPLES * 4);
             for (let i = 0; i < MAX_RIPPLES; i++) {
                 if (i < activeRipples.length) {
@@ -433,16 +571,25 @@
                     rippleData[i * 4 + 1] = r.y;
                     rippleData[i * 4 + 2] = r.radius;
                     rippleData[i * 4 + 3] = r.intensity;
-                } else {
-                    rippleData[i * 4 + 0] = 0.0;
-                    rippleData[i * 4 + 1] = 0.0;
-                    rippleData[i * 4 + 2] = 0.0;
-                    rippleData[i * 4 + 3] = 0.0;
+                }
+            }
+
+            // Pass standing collision nodes to uniforms
+            const standingNodeData = new Float32Array(MAX_NODES * 4);
+            for (let i = 0; i < MAX_NODES; i++) {
+                if (i < activeStandingNodes.length) {
+                    const n = activeStandingNodes[i];
+                    standingNodeData[i * 4 + 0] = n.x;
+                    standingNodeData[i * 4 + 1] = n.y;
+                    standingNodeData[i * 4 + 2] = n.size;
+                    standingNodeData[i * 4 + 3] = n.intensity;
                 }
             }
 
             gl.uniform4fv(gl.getUniformLocation(renderProgram, 'u_ripples'), rippleData);
             gl.uniform1i(gl.getUniformLocation(renderProgram, 'u_rippleCount'), activeRipples.length);
+            gl.uniform4fv(gl.getUniformLocation(renderProgram, 'u_standingNodes'), standingNodeData);
+            gl.uniform1i(gl.getUniformLocation(renderProgram, 'u_standingNodeCount'), activeStandingNodes.length);
             gl.uniform1f(gl.getUniformLocation(renderProgram, 'u_time'), currentTime * 0.001);
             gl.uniform2f(gl.getUniformLocation(renderProgram, 'u_resolution'), canvas.width, canvas.height);
             gl.uniform3fv(gl.getUniformLocation(renderProgram, 'u_crystalColor'), activeCrystalColor);
@@ -469,7 +616,6 @@
                 const xUv = (e.clientX - rect.left) / rect.width;
                 const yUv = 1.0 - (e.clientY - rect.top) / rect.height;
 
-                // Trigger thick, highly visible crystal ripple at the exact click point
                 triggerRipple(xUv, yUv, true);
             }
 
@@ -546,7 +692,6 @@
             const customPicker = document.getElementById('customColorPicker');
             const presetBtns = document.querySelectorAll('.color-preset-btn');
 
-            // Prevent clicks inside settings from triggering ripples
             const stopPropEvents = ['mousedown', 'mouseup', 'touchstart', 'touchend', 'click', 'pointerdown'];
             stopPropEvents.forEach(evt => {
                 settingsBtn.addEventListener(evt, (e) => e.stopPropagation());
