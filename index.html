@@ -135,7 +135,7 @@
                     <span class="w-3.5 h-3.5 rounded-full bg-emerald-500"></span>
                     <span class="text-xs font-medium text-slate-700">Emerald</span>
                 </button>
-                <button class="color-preset-btn flex items-center justify-center gap-1.5 p-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-all" data-color="#f43f5e">
+                <button class="color-preset-btn flex items-center justify-center gap-1.5 p-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-all" data-color="#f43f8e">
                     <span class="w-3.5 h-3.5 rounded-full bg-rose-500"></span>
                     <span class="text-xs font-medium text-slate-700">Ruby</span>
                 </button>
@@ -213,14 +213,14 @@
                 vec2 dir = dist > 0.0001 ? diff / dist : vec2(1.0, 0.0);
                 float angle = atan(dir.y, dir.x);
 
-                // Bobbing harmonic wave scaled by fading intensity
-                float bob = (sin(u_time * 3.2 + size * 10.0) * 0.5 + 0.5) * intensity;
+                // Scaled down standing oscillation frequency (1.62 vs 1.8)
+                float bob = (sin(u_time * 1.62 + size * 10.0) * 0.5 + 0.5) * intensity;
                 float edgeFade = smoothstep(size, 0.0, dist) * intensity;
 
-                float waveProfile = cos(dist * 38.0 - u_time * 1.8) * bob;
+                float waveProfile = cos(dist * 24.0 - u_time * 1.08) * bob;
                 float h = waveProfile * edgeFade * 0.18;
 
-                float dh_ddist = -sin(dist * 38.0 - u_time * 1.8) * 38.0 * bob * edgeFade;
+                float dh_ddist = -sin(dist * 24.0 - u_time * 1.08) * 24.0 * bob * edgeFade;
                 vec2 perp = vec2(-dir.y, dir.x);
                 waveSlope = dir * dh_ddist * 0.022;
 
@@ -263,7 +263,7 @@
                 diff.x *= aspect;
                 float dist = length(diff);
 
-                if (dist > radius + 0.04) {
+                if (dist > radius + 0.08) {
                     waveSlope = vec2(0.0);
                     caustic = 0.0;
                     waveFacetNormal = vec3(0.0, 0.0, 1.0);
@@ -275,15 +275,19 @@
                 vec2 dir = dist > 0.0001 ? diff / dist : vec2(1.0, 0.0);
                 float angle = atan(dir.y, dir.x);
 
-                float freq = 36.0;
+                // Balanced frequency for springy jelly bounce
+                float freq = 24.0;
                 float phase = (radius - dist) * freq;
 
-                float wobble = sin(angle * 4.0 + radius * 8.0) * 0.35 + cos(angle * 6.0 - radius * 5.0) * 0.25;
+                // Jelly-like organic wobble
+                float wobble = sin(angle * 3.0 + radius * 5.0) * 0.35 + cos(angle * 5.0 - radius * 4.0) * 0.25;
                 phase += wobble;
 
-                float leadingEdge = smoothstep(radius + 0.04, radius - 0.02, dist);
+                float leadingEdge = smoothstep(radius + 0.08, radius - 0.04, dist);
                 float centerFade = pow(clamp(dist / (radius + 0.001), 0.0, 1.0), 0.55);
-                float overallFade = pow(max(0.0, 1.0 - radius / 1.15), 0.8) * intensity;
+                
+                // Smooth fade to let edges dissolve gently into the background
+                float overallFade = pow(max(0.0, 1.0 - radius / 1.25), 1.5) * intensity;
 
                 float envelope = leadingEdge * centerFade * overallFade;
 
@@ -307,7 +311,7 @@
                 wavePresence = clamp((waveProfile * 0.5 + 0.5) * envelope * 2.2, 0.0, 1.0);
 
                 // Compute dense geometric crystal facets
-                vec2 crystalST = vec2(angle * 5.0, dist * 22.0 - radius * 6.0);
+                vec2 crystalST = vec2(angle * 5.0, dist * 16.0 - radius * 4.0);
                 vec2 g = floor(crystalST);
                 vec2 f = fract(crystalST);
 
@@ -542,13 +546,14 @@
                 activeRipples.shift();
             }
 
+            // Exactly 10% slower expansion speed (0.198 to ~0.234)
             activeRipples.push({
                 id: ++rippleIdCounter,
                 x: xUv,
                 y: yUv,
                 radius: 0.001,
-                maxRadius: 1.15,
-                speed: 0.38 + Math.random() * 0.08,
+                maxRadius: 1.25,
+                speed: 0.198 + Math.random() * 0.036,
                 intensity: isBold ? 1.4 : 1.0
             });
         }
@@ -559,21 +564,23 @@
             const dt = Math.min((currentTime - lastTime) * 0.001, 0.033);
             lastTime = currentTime;
 
-            // Update single ripple radius and fade
+            // Update single ripple radius and progressive fade
             for (let i = activeRipples.length - 1; i >= 0; i--) {
                 const r = activeRipples[i];
                 r.radius += r.speed * dt;
-                r.intensity = (1.25) * (1.0 - r.radius / r.maxRadius);
+                
+                // Exponential decay over radius expansion
+                r.intensity = (1.25) * Math.pow(Math.max(0.0, 1.0 - r.radius / r.maxRadius), 1.3);
 
-                if (r.radius >= r.maxRadius || r.intensity <= 0.0) {
+                if (r.radius >= r.maxRadius || r.intensity <= 0.001) {
                     activeRipples.splice(i, 1);
                 }
             }
 
-            // Update standing collision nodes intensity fade
+            // Update standing collision nodes intensity fade (10% slower fade rate: 0.252 vs 0.28)
             for (let j = activeStandingNodes.length - 1; j >= 0; j--) {
                 const n = activeStandingNodes[j];
-                n.intensity -= dt * 0.45;
+                n.intensity -= dt * 0.252;
                 if (n.intensity <= 0) {
                     activeStandingNodes.splice(j, 1);
                 }
