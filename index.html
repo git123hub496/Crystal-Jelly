@@ -13,7 +13,6 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background-color: #ffffff;
             font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             user-select: none;
             -webkit-user-select: none;
@@ -28,12 +27,30 @@
         }
 
         .glass-panel {
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(226, 232, 240, 0.8);
             box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.05);
+            color: #334155;
         }
+
+        /* Dark Mode styles for UI elements */
+        .dark-ui .glass-panel {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(51, 65, 85, 0.8);
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
+            color: #f8fafc;
+        }
+
+        .dark-ui .text-slate-800 { color: #f8fafc; }
+        .dark-ui .text-slate-700 { color: #e2e8f0; }
+        .dark-ui .text-slate-600 { color: #cbd5e1; }
+        .dark-ui .text-slate-500 { color: #94a3b8; }
+        .dark-ui .border-slate-200 { border-color: #334155; }
+        .dark-ui .hover\:bg-slate-100\/80:hover { background-color: rgba(51, 65, 85, 0.6); }
+        .dark-ui .bg-white { background-color: #1e293b; }
+        .dark-ui .hover\:bg-slate-50:hover { background-color: #334155; }
 
         @keyframes pulseGlow {
             0%, 100% { opacity: 0.9; transform: scale(1); }
@@ -45,7 +62,7 @@
         }
     </style>
 </head>
-<body class="relative flex items-center justify-center bg-white">
+<body id="appBody" class="relative flex items-center justify-center">
 
     <!-- Fullscreen Interactive Canvas -->
     <canvas id="crystalCanvas"></canvas>
@@ -59,7 +76,7 @@
     </div>
 
     <!-- Top-Right Settings Gear Button -->
-    <button id="settingsBtn" class="absolute top-6 right-6 z-20 glass-panel p-3 rounded-full hover:bg-slate-100/80 transition-all transform hover:scale-105 active:scale-95 shadow-md group" title="Color Settings">
+    <button id="settingsBtn" class="absolute top-6 right-6 z-20 glass-panel p-3 rounded-full hover:bg-slate-100/80 transition-all transform hover:scale-105 active:scale-95 shadow-md group" title="Settings">
         <svg class="w-6 h-6 text-slate-700 group-hover:rotate-45 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -70,7 +87,7 @@
     <div id="settingsPanel" class="hidden absolute top-20 right-6 z-20 glass-panel p-5 rounded-2xl w-80 flex flex-col gap-4 shadow-2xl transition-all">
         <div class="flex items-center justify-between border-b border-slate-200 pb-3">
             <h3 class="font-semibold text-slate-800 text-base flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span> Crystal Color Settings
+                <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span> Settings
             </h3>
             <button id="closeSettings" class="text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-lg">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -79,6 +96,26 @@
             </button>
         </div>
 
+        <!-- Background Color Setting -->
+        <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Background Color</label>
+            <div class="grid grid-cols-3 gap-2">
+                <button class="bg-option-btn flex items-center justify-center gap-1.5 p-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-all" data-bg="white">
+                    <span class="w-3.5 h-3.5 rounded-full border border-slate-300 bg-white"></span>
+                    <span class="text-xs font-medium text-slate-700">White</span>
+                </button>
+                <button class="bg-option-btn flex items-center justify-center gap-1.5 p-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-all" data-bg="black">
+                    <span class="w-3.5 h-3.5 rounded-full bg-slate-900"></span>
+                    <span class="text-xs font-medium text-slate-700">Black</span>
+                </button>
+                <button class="bg-option-btn flex items-center justify-center gap-1.5 p-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-all" data-bg="system">
+                    <span class="w-3.5 h-3.5 rounded-full bg-gradient-to-r from-white to-slate-900 border border-slate-300"></span>
+                    <span class="text-xs font-medium text-slate-700">System</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Gemstone Presets -->
         <div>
             <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Gemstone Presets</label>
             <div class="grid grid-cols-3 gap-2">
@@ -135,6 +172,7 @@
             uniform vec2 u_resolution;
             uniform float u_time;
             uniform vec3 u_crystalColor;
+            uniform vec3 u_bgColor;
 
             #define MAX_RIPPLES 12
             #define MAX_NODES 8
@@ -354,29 +392,45 @@
                     vec3 avgFacet = normalize(blendedFacetNormal);
                     N = normalize(mix(vec3(0.0, 0.0, 1.0), avgFacet, clamp(totalWavePresence * 1.5, 0.0, 1.0)) + vec3(-totalWaveSlope * 24.0, 0.0));
                 } else {
-                    N = vec3(0.0, 0.0, 1.0); // Completely flat plain white surface when no wave is active
+                    N = vec3(0.0, 0.0, 1.0); // Completely flat plain surface when no wave is active
                 }
 
-                // Base plane background is pure white
-                vec3 color = vec3(1.0, 1.0, 1.0);
+                // Base plane background color
+                vec3 color = u_bgColor;
+                float isDark = 1.0 - u_bgColor.r; // 1.0 if black background, 0.0 if white background
 
                 if (totalWavePresence > 0.001) {
-                    // Soft ambient frosted depth shadow underneath the white crystal wave
-                    float softBlurShadow = smoothstep(0.0, 0.75, totalWavePresence) * 0.22;
                     float slopeLen = length(totalWaveSlope);
-                    float slopeShadow = smoothstep(0.008, 1.8, slopeLen) * 0.42;
 
-                    float ambientOcclusion = max(softBlurShadow, slopeShadow);
-                    vec3 shadowColor = mix(vec3(1.0), vec3(0.74, 0.77, 0.82), ambientOcclusion);
-                    color = shadowColor;
+                    if (isDark > 0.5) {
+                        // Dark background shading
+                        float softGlow = smoothstep(0.0, 0.75, totalWavePresence) * 0.25;
+                        color += mix(vec3(0.1, 0.15, 0.25), u_crystalColor * 0.4, 0.5) * softGlow;
 
-                    // Frosted facet edge outlines
-                    float facetEdgeVisual = 1.0 - smoothstep(0.008, 0.16, totalFacetEdge);
-                    color -= vec3(0.18) * facetEdgeVisual * clamp(totalWavePresence * 2.0, 0.0, 1.0);
+                        // Facet edge highlights
+                        float facetEdgeVisual = 1.0 - smoothstep(0.008, 0.16, totalFacetEdge);
+                        color += vec3(0.3) * facetEdgeVisual * clamp(totalWavePresence * 2.0, 0.0, 1.0);
 
-                    // Caustics
-                    vec3 causticTint = mix(vec3(0.92), u_crystalColor * 1.2, 0.65);
-                    color += causticTint * totalCaustic * smoothstep(0.005, 1.0, slopeLen);
+                        // Caustics
+                        vec3 causticTint = mix(vec3(0.8), u_crystalColor * 1.5, 0.7);
+                        color += causticTint * totalCaustic * smoothstep(0.005, 1.0, slopeLen);
+                    } else {
+                        // Light background shading
+                        float softBlurShadow = smoothstep(0.0, 0.75, totalWavePresence) * 0.22;
+                        float slopeShadow = smoothstep(0.008, 1.8, slopeLen) * 0.42;
+
+                        float ambientOcclusion = max(softBlurShadow, slopeShadow);
+                        vec3 shadowColor = mix(vec3(1.0), vec3(0.74, 0.77, 0.82), ambientOcclusion);
+                        color = shadowColor;
+
+                        // Frosted facet edge outlines
+                        float facetEdgeVisual = 1.0 - smoothstep(0.008, 0.16, totalFacetEdge);
+                        color -= vec3(0.18) * facetEdgeVisual * clamp(totalWavePresence * 2.0, 0.0, 1.0);
+
+                        // Caustics
+                        vec3 causticTint = mix(vec3(0.92), u_crystalColor * 1.2, 0.65);
+                        color += causticTint * totalCaustic * smoothstep(0.005, 1.0, slopeLen);
+                    }
 
                     // Specular Reflections
                     vec3 lightDir1 = normalize(vec3(0.4, 0.8, 1.0));
@@ -393,7 +447,7 @@
                     color += specColor * (spec1 + spec2) * clamp(totalWavePresence * 2.2, 0.0, 1.0);
 
                     // Crystal body color tint inside wave crests
-                    color = mix(color, color * u_crystalColor, totalWavePresence * 0.22);
+                    color = mix(color, mix(color * u_crystalColor, u_crystalColor, isDark * 0.5), totalWavePresence * 0.22);
 
                     // Fresnel Rim
                     float fresnel = pow(1.0 - max(dot(N, viewDir), 0.0), 2.0);
@@ -410,6 +464,8 @@
         let quadBuffer;
         let userInteracted = false;
         let activeCrystalColor = [1.0, 1.0, 1.0]; // Default Pure White
+        let currentBgMode = 'white'; // 'white', 'black', or 'system'
+        let activeBgColor = [1.0, 1.0, 1.0];
 
         const activeRipples = [];
         const activeStandingNodes = [];
@@ -593,6 +649,7 @@
             gl.uniform1f(gl.getUniformLocation(renderProgram, 'u_time'), currentTime * 0.001);
             gl.uniform2f(gl.getUniformLocation(renderProgram, 'u_resolution'), canvas.width, canvas.height);
             gl.uniform3fv(gl.getUniformLocation(renderProgram, 'u_crystalColor'), activeCrystalColor);
+            gl.uniform3fv(gl.getUniformLocation(renderProgram, 'u_bgColor'), activeBgColor);
 
             const posAttr = gl.getAttribLocation(renderProgram, 'a_position');
             gl.enableVertexAttribArray(posAttr);
@@ -685,12 +742,45 @@
             return [(num >> 16 & 255) / 255, (num >> 8 & 255) / 255, (num & 255) / 255];
         }
 
+        function updateBgTheme() {
+            const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            let isDark = false;
+
+            if (currentBgMode === 'black') {
+                isDark = true;
+            } else if (currentBgMode === 'white') {
+                isDark = false;
+            } else if (currentBgMode === 'system') {
+                isDark = systemPrefersDark;
+            }
+
+            activeBgColor = isDark ? [0.0, 0.0, 0.0] : [1.0, 1.0, 1.0];
+
+            const appBody = document.getElementById('appBody');
+            if (isDark) {
+                appBody.classList.add('dark-ui');
+            } else {
+                appBody.classList.remove('dark-ui');
+            }
+
+            // Highlight selected option
+            const bgBtns = document.querySelectorAll('.bg-option-btn');
+            bgBtns.forEach(btn => {
+                if (btn.getAttribute('data-bg') === currentBgMode) {
+                    btn.classList.add('ring-2', 'ring-slate-400');
+                } else {
+                    btn.classList.remove('ring-2', 'ring-slate-400');
+                }
+            });
+        }
+
         function setupSettingsUI() {
             const settingsBtn = document.getElementById('settingsBtn');
             const settingsPanel = document.getElementById('settingsPanel');
             const closeSettings = document.getElementById('closeSettings');
             const customPicker = document.getElementById('customColorPicker');
             const presetBtns = document.querySelectorAll('.color-preset-btn');
+            const bgBtns = document.querySelectorAll('.bg-option-btn');
 
             const stopPropEvents = ['mousedown', 'mouseup', 'touchstart', 'touchend', 'click', 'pointerdown'];
             stopPropEvents.forEach(evt => {
@@ -728,6 +818,23 @@
             customPicker.addEventListener('input', (e) => {
                 updateActiveColor(e.target.value);
             });
+
+            bgBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    currentBgMode = btn.getAttribute('data-bg');
+                    updateBgTheme();
+                });
+            });
+
+            if (window.matchMedia) {
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+                    if (currentBgMode === 'system') {
+                        updateBgTheme();
+                    }
+                });
+            }
+
+            updateBgTheme();
         }
 
         window.onload = () => {
